@@ -4,6 +4,12 @@ import { COLORS } from "../../styles/colors";
 import { SPACING, BORDER_RADIUS, SHADOWS } from "../../styles/theme";
 
 export default function MovieCard({ item, onPress, horizontal = false }) {
+  // Handle both movies and books
+  const displayTitle = item.title || 'Untitled';
+  const displayYear = item.year || item.publishedDate?.split('-')[0] || 'N/A';
+  const displayPoster = item.poster || item.thumbnail || 'https://via.placeholder.com/500x750?text=No+Image';
+  const hasRating = item.voteAverage && item.voteAverage > 0;
+
   if (horizontal) {
     return (
       <TouchableOpacity
@@ -12,15 +18,15 @@ export default function MovieCard({ item, onPress, horizontal = false }) {
         activeOpacity={0.7}
       >
         <Image
-          source={{ uri: item.poster }}
+          source={{ uri: displayPoster }}
           style={styles.horizontalPoster}
           resizeMode="cover"
         />
         <View style={styles.horizontalContent}>
           <Text style={styles.horizontalTitle} numberOfLines={2}>
-            {item.title}
+            {displayTitle}
           </Text>
-          {item.voteAverage > 0 && (
+          {hasRating && (
             <View style={styles.ratingBadge}>
               <Text style={styles.ratingText}>
                 ⭐ {item.voteAverage.toFixed(1)}
@@ -39,16 +45,21 @@ export default function MovieCard({ item, onPress, horizontal = false }) {
       activeOpacity={0.7}
     >
       <Image
-        source={{ uri: item.poster }}
+        source={{ uri: displayPoster }}
         style={styles.verticalPoster}
         resizeMode="cover"
       />
       <View style={styles.verticalContent}>
         <Text style={styles.verticalTitle} numberOfLines={2}>
-          {item.title}
+          {displayTitle}
         </Text>
-        <Text style={styles.year}>{item.year}</Text>
-        {item.voteAverage > 0 && (
+        <Text style={styles.year}>{displayYear}</Text>
+        {item.authors && item.authors.length > 0 && (
+          <Text style={styles.authors} numberOfLines={1}>
+            {item.authors.join(', ')}
+          </Text>
+        )}
+        {hasRating && (
           <Text style={styles.rating}>⭐ {item.voteAverage.toFixed(1)}/10</Text>
         )}
       </View>
@@ -121,6 +132,12 @@ const styles = StyleSheet.create({
   year: {
     fontSize: 14,
     color: COLORS.textSecondary,
+  },
+  authors: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    fontStyle: 'italic',
+    marginTop: SPACING.xs / 2,
   },
   rating: {
     fontSize: 13,

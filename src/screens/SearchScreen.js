@@ -4,6 +4,8 @@ import {
   searchMovies,
   getPopularMovies,
   getNowPlayingMovies,
+  getMoviesByGenre,
+  GENRES,
 } from "../api/tmdbApi";
 import { searchBooks } from "../api/booksApi";
 import ModeSelector from "../components/search/ModeSelector";
@@ -24,6 +26,13 @@ export default function SearchScreen({ navigation }) {
   const [results, setResults] = useState([]);
   const [popularMovies, setPopularMovies] = useState([]);
   const [nowPlayingMovies, setNowPlayingMovies] = useState([]);
+  const [actionMovies, setActionMovies] = useState([]);
+  const [animeMovies, setAnimeMovies] = useState([]);
+  const [romanceMovies, setRomanceMovies] = useState([]);
+  const [scifiMovies, setScifiMovies] = useState([]);
+  const [comedyMovies, setComedyMovies] = useState([]);
+  const [horrorMovies, setHorrorMovies] = useState([]);
+  const [crimeMovies, setCrimeMovies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -33,6 +42,7 @@ export default function SearchScreen({ navigation }) {
     if (mode === "movie") {
       loadPopularMovies();
       loadNowPlayingMovies();
+      loadGenreMovies();
     }
   }, [mode]);
 
@@ -54,26 +64,60 @@ export default function SearchScreen({ navigation }) {
     }
   }
 
-  async function handleSearch(page = 1) {
-    if (!query.trim()) return;
+  async function loadGenreMovies() {
+    try {
+      const [action, anime, romance, scifi, comedy, horror, crime] = await Promise.all([
+        getMoviesByGenre(GENRES.ACTION.id, 1),
+        getMoviesByGenre(GENRES.ANIMATION.id, 1),
+        getMoviesByGenre(GENRES.ROMANCE.id, 1),
+        getMoviesByGenre(GENRES.SCIFI.id, 1),
+        getMoviesByGenre(GENRES.COMEDY.id, 1),
+        getMoviesByGenre(GENRES.HORROR.id, 1),
+        getMoviesByGenre(GENRES.CRIME.id, 1),
+      ]);
+      setActionMovies(action);
+      setAnimeMovies(anime);
+      setRomanceMovies(romance);
+      setScifiMovies(scifi);
+      setComedyMovies(comedy);
+      setHorrorMovies(horror);
+      setCrimeMovies(crime);
+    } catch (error) {
+      console.error("Error loading genre movies:", error);
+    }
+  }
 
+  async function handleSearch(page = 1) {
+    if (!query.trim()) {
+      console.log("Empty query, skipping search");
+      return;
+    }
+
+    console.log(`Searching for "${query}" on page ${page} in mode ${mode}`);
     setLoading(true);
     setHasSearched(true);
 
     try {
       if (mode === "movie") {
+        console.log("Calling searchMovies API...");
         const data = await searchMovies(query, page);
+        console.log(`Found ${data.results.length} results, total pages: ${data.totalPages}`);
         setResults(data.results);
         setTotalPages(data.totalPages);
         setCurrentPage(data.currentPage);
       } else {
+        console.log("Calling searchBooks API...");
         const data = await searchBooks(query);
+        console.log(`Found ${data.length} books`);
         setResults(data);
         setTotalPages(1);
         setCurrentPage(1);
       }
     } catch (error) {
       console.error("Search error:", error);
+      setResults([]);
+      setTotalPages(1);
+      setCurrentPage(1);
     } finally {
       setLoading(false);
     }
@@ -155,11 +199,83 @@ export default function SearchScreen({ navigation }) {
           title="🔥 Phim Phổ Biến"
           movies={popularMovies}
           onMoviePress={navigateToDetail}
+          showSeeMore={false}
         />
         <MovieSection
           title="⭐ Đang Chiếu"
           movies={nowPlayingMovies}
           onMoviePress={navigateToDetail}
+          showSeeMore={false}
+        />
+        <MovieSection
+          title={GENRES.SCIFI.name}
+          movies={scifiMovies}
+          onMoviePress={navigateToDetail}
+          showSeeMore={true}
+          onSeeMore={() => navigation.navigate('GenreMovies', { 
+            genreId: GENRES.SCIFI.id, 
+            genreName: GENRES.SCIFI.name 
+          })}
+        />
+        <MovieSection
+          title={GENRES.ACTION.name}
+          movies={actionMovies}
+          onMoviePress={navigateToDetail}
+          showSeeMore={true}
+          onSeeMore={() => navigation.navigate('GenreMovies', { 
+            genreId: GENRES.ACTION.id, 
+            genreName: GENRES.ACTION.name 
+          })}
+        />
+        <MovieSection
+          title={GENRES.ANIMATION.name}
+          movies={animeMovies}
+          onMoviePress={navigateToDetail}
+          showSeeMore={true}
+          onSeeMore={() => navigation.navigate('GenreMovies', { 
+            genreId: GENRES.ANIMATION.id, 
+            genreName: GENRES.ANIMATION.name 
+          })}
+        />
+        <MovieSection
+          title={GENRES.CRIME.name}
+          movies={crimeMovies}
+          onMoviePress={navigateToDetail}
+          showSeeMore={true}
+          onSeeMore={() => navigation.navigate('GenreMovies', { 
+            genreId: GENRES.CRIME.id, 
+            genreName: GENRES.CRIME.name 
+          })}
+        />
+        <MovieSection
+          title={GENRES.HORROR.name}
+          movies={horrorMovies}
+          onMoviePress={navigateToDetail}
+          showSeeMore={true}
+          onSeeMore={() => navigation.navigate('GenreMovies', { 
+            genreId: GENRES.HORROR.id, 
+            genreName: GENRES.HORROR.name 
+          })}
+        />
+        <MovieSection
+          title={GENRES.ROMANCE.name}
+          movies={romanceMovies}
+          onMoviePress={navigateToDetail}
+          showSeeMore={true}
+          onSeeMore={() => navigation.navigate('GenreMovies', { 
+            genreId: GENRES.ROMANCE.id, 
+            genreName: GENRES.ROMANCE.name 
+          })}
+        />
+        <MovieSection
+          title={GENRES.COMEDY.name}
+          movies={comedyMovies}
+          onMoviePress={navigateToDetail}
+          showSeeMore={true}
+          onSeeMore={() => navigation.navigate('GenreMovies', { 
+            genreId: GENRES.COMEDY.id, 
+            genreName: GENRES.COMEDY.name 
+          })}
         />
       </ScrollView>
     );

@@ -59,28 +59,34 @@ export default function DetailScreen({ route, navigation }) {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Hero Section with Poster */}
-      <View style={styles.heroSection}>
-        <Image
-          source={{
-            uri:
-              mode === "movie"
-                ? item.poster
-                : item.thumbnail ||
-                  "https://via.placeholder.com/200x300?text=No+Cover",
-          }}
-          style={styles.posterImage}
-          resizeMode="cover"
-        />
-        <LinearGradient
-          colors={["transparent", COLORS.background]}
-          style={styles.gradient}
-        />
-      </View>
+    <View style={styles.container}>
+      <ScrollView 
+        showsVerticalScrollIndicator={true}
+        nestedScrollEnabled={true}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
+        style={{ flex: 1 }}
+      >
+        {/* Hero Section with Poster */}
+        <View style={styles.heroSection}>
+          <Image
+            source={{
+              uri:
+                mode === "movie"
+                  ? item.poster
+                  : item.thumbnail ||
+                    "https://via.placeholder.com/200x300?text=No+Cover",
+            }}
+            style={styles.posterImage}
+            resizeMode="cover"
+          />
+          <LinearGradient
+            colors={["transparent", COLORS.background]}
+            style={styles.gradient}
+          />
+        </View>
 
-      {/* Content Section */}
-      <View style={styles.content}>
+        {/* Content Section */}
         {/* Title Card */}
         <View style={styles.titleCard}>
           <View style={styles.titleHeader}>
@@ -150,6 +156,7 @@ export default function DetailScreen({ route, navigation }) {
             style={styles.commentInput}
             multiline
             numberOfLines={4}
+            scrollEnabled={false}
           />
         </View>
 
@@ -168,8 +175,8 @@ export default function DetailScreen({ route, navigation }) {
             <Text style={styles.saveButtonText}>💾 Lưu vào Danh sách</Text>
           </LinearGradient>
         </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -177,9 +184,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+    overflow: 'hidden',
   },
   heroSection: {
-    height: 400,
+    height: 300,
     position: "relative",
   },
   posterImage: {
@@ -194,14 +202,12 @@ const styles = StyleSheet.create({
     bottom: 0,
     height: 100,
   },
-  content: {
-    padding: SPACING.md,
-    marginTop: -SPACING.xl,
-  },
   titleCard: {
     backgroundColor: COLORS.surface,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
+    marginHorizontal: SPACING.md,
+    marginTop: -SPACING.xl,
     marginBottom: SPACING.md,
     ...SHADOWS.medium,
   },
@@ -259,6 +265,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
+    marginHorizontal: SPACING.md,
     marginBottom: SPACING.md,
     ...SHADOWS.small,
   },
@@ -277,6 +284,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
+    marginHorizontal: SPACING.md,
     marginBottom: SPACING.md,
     ...SHADOWS.small,
   },
@@ -284,6 +292,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
+    marginHorizontal: SPACING.md,
     marginBottom: SPACING.md,
     ...SHADOWS.small,
   },
@@ -299,6 +308,7 @@ const styles = StyleSheet.create({
   saveButton: {
     borderRadius: BORDER_RADIUS.md,
     overflow: "hidden",
+    marginHorizontal: SPACING.md,
     marginBottom: SPACING.xl,
     ...SHADOWS.medium,
   },

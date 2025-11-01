@@ -3,31 +3,36 @@ const BASE_URL = "https://api.themoviedb.org/3";
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 
 // 🎬 Tìm kiếm phim
-export async function searchMovies(query) {
+export async function searchMovies(query, page = 1) {
   const url = `${BASE_URL}/search/movie?api_key=${API_KEY}&language=vi-VN&query=${encodeURIComponent(
     query
-  )}&page=1`;
+  )}&page=${page}`;
 
   const res = await fetch(url);
   const data = await res.json();
 
-  if (!data.results) return [];
+  if (!data.results) return { results: [], totalPages: 0, currentPage: 1 };
 
-  return data.results.map((m) => ({
-    id: m.id.toString(),
-    title: m.title,
-    originalTitle: m.original_title,
-    year: m.release_date ? m.release_date.split("-")[0] : "N/A",
-    poster: m.poster_path
-      ? `${IMAGE_BASE_URL}${m.poster_path}`
-      : "https://via.placeholder.com/500x750?text=No+Poster",
-    backdrop: m.backdrop_path ? `${IMAGE_BASE_URL}${m.backdrop_path}` : null,
-    overview: m.overview || "Không có mô tả",
-    voteAverage: m.vote_average,
-    voteCount: m.vote_count,
-    popularity: m.popularity,
-    releaseDate: m.release_date,
-  }));
+  return {
+    results: data.results.map((m) => ({
+      id: m.id.toString(),
+      title: m.title,
+      originalTitle: m.original_title,
+      year: m.release_date ? m.release_date.split("-")[0] : "N/A",
+      poster: m.poster_path
+        ? `${IMAGE_BASE_URL}${m.poster_path}`
+        : "https://via.placeholder.com/500x750?text=No+Poster",
+      backdrop: m.backdrop_path ? `${IMAGE_BASE_URL}${m.backdrop_path}` : null,
+      overview: m.overview || "Không có mô tả",
+      voteAverage: m.vote_average,
+      voteCount: m.vote_count,
+      popularity: m.popularity,
+      releaseDate: m.release_date,
+    })),
+    totalPages: data.total_pages > 500 ? 500 : data.total_pages, // TMDB limit 500 pages
+    currentPage: data.page,
+    totalResults: data.total_results,
+  };
 }
 
 // 🔥 Lấy danh sách phim phổ biến

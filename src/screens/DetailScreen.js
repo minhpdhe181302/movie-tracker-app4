@@ -3,13 +3,17 @@ import {
   View,
   Text,
   Image,
-  Button,
   ScrollView,
   TextInput,
   Alert,
+  StyleSheet,
+  TouchableOpacity,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import RatingStars from "../components/RatingStars";
 import { addItem, getAll, updateItem } from "../storage/trackerStorage";
+import { COLORS } from "../styles/colors";
+import { SPACING, BORDER_RADIUS, SHADOWS } from "../styles/theme";
 
 export default function DetailScreen({ route, navigation }) {
   const { item, mode } = route.params;
@@ -39,65 +43,272 @@ export default function DetailScreen({ route, navigation }) {
           : item.thumbnail ||
             "https://via.placeholder.com/100x150?text=No+Cover",
       year: mode === "movie" ? item.year : item.publishedDate,
-      description: item.description || "",
+      description: item.overview || item.description || "",
       rating,
       comment,
       status: "want",
       addedAt: new Date().toISOString(),
+      // TMDB specific data
+      voteAverage: item.voteAverage,
+      voteCount: item.voteCount,
+      originalTitle: item.originalTitle,
     };
     await addItem(newItem);
-    Alert.alert("✅ Saved!", "Your rating and comment have been saved.");
+    Alert.alert("✅ Đã Lưu!", "Đánh giá và nhận xét của bạn đã được lưu.");
     navigation.navigate("My List");
   }
 
   return (
-    <ScrollView style={{ flex: 1, padding: 16 }}>
-      <Image
-        source={{
-          uri:
-            mode === "movie"
-              ? item.poster
-              : item.thumbnail ||
-                "https://via.placeholder.com/200x300?text=No+Cover",
-        }}
-        style={{
-          width: 200,
-          height: 300,
-          alignSelf: "center",
-          borderRadius: 10,
-        }}
-      />
-      <Text style={{ fontSize: 22, fontWeight: "bold", marginTop: 16 }}>
-        {item.title}
-      </Text>
-      <Text>{mode === "movie" ? item.year : item.publishedDate}</Text>
-      {item.authors && <Text>By {item.authors.join(", ")}</Text>}
+    <ScrollView style={styles.container}>
+      {/* Hero Section with Poster */}
+      <View style={styles.heroSection}>
+        <Image
+          source={{
+            uri:
+              mode === "movie"
+                ? item.poster
+                : item.thumbnail ||
+                  "https://via.placeholder.com/200x300?text=No+Cover",
+          }}
+          style={styles.posterImage}
+          resizeMode="cover"
+        />
+        <LinearGradient
+          colors={["transparent", COLORS.background]}
+          style={styles.gradient}
+        />
+      </View>
 
-      <Text style={{ marginVertical: 10 }}>{item.description}</Text>
+      {/* Content Section */}
+      <View style={styles.content}>
+        {/* Title Card */}
+        <View style={styles.titleCard}>
+          <View style={styles.titleHeader}>
+            <Text style={styles.title}>{item.title}</Text>
+            <View
+              style={[
+                styles.typeBadge,
+                {
+                  backgroundColor:
+                    mode === "movie" ? COLORS.movie : COLORS.book,
+                },
+              ]}
+            >
+              <Text style={styles.typeBadgeText}>
+                {mode === "movie" ? "🎬" : "📚"}
+              </Text>
+            </View>
+          </View>
 
-      {/* ⭐ Rating Section */}
-      <Text style={{ fontWeight: "bold", marginTop: 16 }}>Your Rating:</Text>
-      <RatingStars rating={rating} onChange={setRating} />
+          <Text style={styles.year}>
+            {mode === "movie" ? item.year : item.publishedDate}
+          </Text>
 
-      {/* 💬 Comment Section */}
-      <Text style={{ fontWeight: "bold", marginTop: 12 }}>Your Comment:</Text>
-      <TextInput
-        value={comment}
-        onChangeText={setComment}
-        placeholder="Write your thoughts..."
-        style={{
-          borderWidth: 1,
-          borderColor: "#ccc",
-          borderRadius: 8,
-          padding: 8,
-          marginTop: 6,
-          minHeight: 80,
-          textAlignVertical: "top",
-        }}
-        multiline
-      />
+          {/* TMDB Rating */}
+          {mode === "movie" && item.voteAverage && item.voteAverage > 0 && (
+            <View style={styles.tmdbRating}>
+              <Text style={styles.tmdbRatingText}>
+                ⭐ {item.voteAverage.toFixed(1)}/10
+              </Text>
+              <Text style={styles.tmdbVotes}>
+                ({item.voteCount?.toLocaleString()} votes)
+              </Text>
+            </View>
+          )}
 
-      <Button title="💾 Save" onPress={handleAdd} />
+          {item.authors && (
+            <Text style={styles.authors}>
+              Tác giả: {item.authors.join(", ")}
+            </Text>
+          )}
+        </View>
+
+        {/* Description */}
+        {(item.overview || item.description) && (
+          <View style={styles.descriptionCard}>
+            <Text style={styles.sectionTitle}>📖 Mô tả</Text>
+            <Text style={styles.description}>
+              {item.overview || item.description}
+            </Text>
+          </View>
+        )}
+
+        {/* Rating Section */}
+        <View style={styles.ratingCard}>
+          <Text style={styles.sectionTitle}>⭐ Đánh giá của bạn</Text>
+          <RatingStars rating={rating} onChange={setRating} />
+        </View>
+
+        {/* Comment Section */}
+        <View style={styles.commentCard}>
+          <Text style={styles.sectionTitle}>💬 Nhận xét của bạn</Text>
+          <TextInput
+            value={comment}
+            onChangeText={setComment}
+            placeholder="Chia sẻ suy nghĩ của bạn về bộ phim này..."
+            placeholderTextColor={COLORS.textLight}
+            style={styles.commentInput}
+            multiline
+            numberOfLines={4}
+          />
+        </View>
+
+        {/* Save Button */}
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleAdd}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={[COLORS.primary, COLORS.primaryDark]}
+            style={styles.saveButtonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Text style={styles.saveButtonText}>💾 Lưu vào Danh sách</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  heroSection: {
+    height: 400,
+    position: "relative",
+  },
+  posterImage: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: COLORS.surfaceLight,
+  },
+  gradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 100,
+  },
+  content: {
+    padding: SPACING.md,
+    marginTop: -SPACING.xl,
+  },
+  titleCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
+    ...SHADOWS.medium,
+  },
+  titleHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: SPACING.sm,
+  },
+  title: {
+    flex: 1,
+    fontSize: 24,
+    fontWeight: "bold",
+    color: COLORS.textPrimary,
+    marginRight: SPACING.md,
+  },
+  typeBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: BORDER_RADIUS.full,
+    alignItems: "center",
+    justifyContent: "center",
+    ...SHADOWS.small,
+  },
+  typeBadgeText: {
+    fontSize: 20,
+  },
+  year: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.xs,
+  },
+  tmdbRating: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.xs,
+  },
+  tmdbRatingText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: COLORS.warning,
+    marginRight: SPACING.sm,
+  },
+  tmdbVotes: {
+    fontSize: 13,
+    color: COLORS.textLight,
+  },
+  authors: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontStyle: "italic",
+  },
+  descriptionCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
+    ...SHADOWS.small,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.md,
+  },
+  description: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: COLORS.textSecondary,
+  },
+  ratingCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
+    ...SHADOWS.small,
+  },
+  commentCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg,
+    marginBottom: SPACING.md,
+    ...SHADOWS.small,
+  },
+  commentInput: {
+    backgroundColor: COLORS.background,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    fontSize: 15,
+    color: COLORS.textPrimary,
+    minHeight: 100,
+    textAlignVertical: "top",
+  },
+  saveButton: {
+    borderRadius: BORDER_RADIUS.md,
+    overflow: "hidden",
+    marginBottom: SPACING.xl,
+    ...SHADOWS.medium,
+  },
+  saveButtonGradient: {
+    paddingVertical: SPACING.lg,
+    alignItems: "center",
+  },
+  saveButtonText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: COLORS.surface,
+  },
+});
